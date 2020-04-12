@@ -29,7 +29,7 @@ The Applied Data Science program at Syracuse University's School of Information 
     
     - IST 719 Information Visualization
     
-    - MBC 638
+    - MBC 638 Data Analysis and Decision Making
 5. Portfolio Presentation  
 
     - Video file presenting the Portfolio Milestone
