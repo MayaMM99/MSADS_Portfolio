@@ -29,7 +29,7 @@ The Applied Data Science program at Syracuse University's School of Information 
     
     - IST 719 Information Visualization
     
-    - MBC 638 Data Analysis and Decision Making
+    - [MBC 638 Data Analysis and Decision Making](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/MBC638_Data%20Analysis%20and%20Decision%20Making)
 5. Portfolio Presentation  
 
     - Video file presenting the Portfolio Milestone
