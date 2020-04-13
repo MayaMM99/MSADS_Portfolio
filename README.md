@@ -23,7 +23,7 @@ The Applied Data Science program at Syracuse University's School of Information 
  
 4. Referenced Course Projects and Assignments
 
-    - IST 687 Introduction to Data Science  
+    - [IST 687 Introduction to Data Science](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST687_Introduction%20to%20Data%20%20Science)  
     
     - IST 707 Data Analytics
     
