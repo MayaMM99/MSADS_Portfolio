@@ -1,0 +1,41 @@
+Attribute,Description,Type
+age_upon_outcome,The age of the animal upon outcome,String
+animal_id,A unique ID given by the Austin Animal Center upon the animal's intake.,String
+date_of_birth,Date of birth of the animal. Estimated if exact birthdate is not known,Date
+outcome_subtype,More specific outcome type corresponding to the outcome type where appropriate,String
+outcome_type,The outcome type,String
+sex_upon_outcome,The gender of the animal and if it has been spayed or neutered at time of outcome,String
+age_upon_outcome_(days),he age of the animal upon outcome represented in days.,Int
+age_upon_outcome_(years),The age of the animal upon outcome represented in years,Int
+age_upon_outcome_age_group,Grouped bins of the animal ages upon outcome. Goes by 2.5 year increments.,
+outcome_datetime,Date and time when the outcome occurred.,Date
+outcome_monthyear,Month and year of outcome represented as a datetime,Date
+outcome_weekday,Day of week of the outcome,String
+outcome_hour,Hour of the outcome represented as a numeric value from 1-24,Int
+outcome_number,Numeric value denoting if an animal has been released from the shelter more than once. Values higher than 1 indicate the animal has been brought into and left the shelter on more than one occasion,Int
+dob_monthyear,Date and time of the birthdate,Date
+age_upon_intake,The age of the animal upon intake,Int
+animal_id_intake,The unique ID given to the animal upon intake. Should match with the animal outcome ID.,String
+animal_type,"Type of animal. May be one of 'cat', 'dog', 'bird', etc.",String
+primary_breed,Primary breed of animal,String
+secondary_breed,Secondary (mix) breed of animal if any. Defaults to none,String
+breed,Breed of the animal,String
+color,Color of the animal,String
+primary_color,Notes the primary color of the animal,String
+secondary_color,"Notes the secondary color of the animal, if any.",String
+multicolor,Notes whether the animal has two or more colors,String
+found_location,Street address or general area in which the animal was found,String
+intake_condition,"The intake condition of the animal. Can be one of 'normal', 'injured', 'sick', etc.",String
+intake_type,"The type of intake, for example, 'stray', 'owner surrender', etc.",String
+sex_upon_intake,The gender of the animal and if it has been spayed or neutered at the time of intake,String
+count,Helper column for tabulating counts. All rows in this column are 1.,Int
+age_upon_intake_(days),The age of the animal upon intake represented in days,Int
+age_upon_intake_(years),The age of the animal upon intake represented in years,Int
+age_upon_intake_age_group,Age group of the animal upon intake. Groups are in increments of 2.5 years,String
+intake_datetime,Date and time when the intake occurred,Date
+intake_monthyear,Month and year of intake as datetime,Date
+intake_weekday,The day of week when the intake occurred,String
+intake_hour,Hour represented as value from 1-24 denoting the hour in which the intake occurred,Int
+intake_number,The intake number denoting the number of occurrences the animal has been brought into the shelter. Values higher than 1 indicate the animal has been taken into the shelter on more than one occasion.,Int
+time_in_shelter,The time in shelter originally represented as a TimeDelta object,Date
+time_in_shelter_days,Numeric value denoting the number of days the animal remained at the shelter from intake to outcome.,Int
