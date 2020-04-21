@@ -26,7 +26,7 @@ The Applied Data Science program at Syracuse University's School of Information 
     - [IST 687 Introduction to Data Science](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST687_Introduction%20to%20Data%20%20Science)  
     
     - [IST 707 Data Analytics](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST707_Data%20Analytics)
-       - [Final Project]()
+       - [Final Project](https://mayamm99.github.io/MSADS_Portfolio/)
     
     - [IST 719 Information Visualization]()
     
