@@ -13,3 +13,5 @@ The project is performed in RStudio. The Austin Animal Center is the largest no-
 • What features are the best determinant for whater or not the animal is adopted?
 
 Dataset of intakes and outcomes from Austin Animal Shelter  is analyzed to discover and understand animal adoption trends, including which attributes of animals result in a higher likelihood of adoption. The final goal is to predict whether or not an animal will be adopted based on characteristics Austin Animal shelter can identify upon intake. 
+
+Final project can be found here: https://mayamm99.github.io/MSADS_Portfolio/
