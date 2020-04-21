@@ -1,0 +1,466 @@
+---
+title: "Final Poster"
+author: "Maya Mileva"
+date: "12/16/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include = FALSE}
+# Load libraries
+library(corrplot)
+library(reshape2)
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(GGally))
+suppressPackageStartupMessages(library(plotly))
+suppressPackageStartupMessages(library(viridis))
+suppressPackageStartupMessages(library(caret))
+suppressPackageStartupMessages(library(randomForest))
+suppressPackageStartupMessages(library(e1071))
+suppressPackageStartupMessages(library(rpart))
+suppressPackageStartupMessages(library(xgboost))
+suppressPackageStartupMessages(library(h2o))
+suppressPackageStartupMessages(library(ggcorrplot))
+suppressPackageStartupMessages(library(rpart.plot))
+suppressPackageStartupMessages(library(corrgram))
+#suppressPackageStartupMessages(library(lightgbm))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggthemes))
+suppressPackageStartupMessages(library(psych))
+suppressPackageStartupMessages(library(scales))
+suppressPackageStartupMessages(library(treemap))
+suppressPackageStartupMessages(library(treemapify))
+suppressPackageStartupMessages(library(repr))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(plotrix))
+suppressPackageStartupMessages(library(ggrepel))
+suppressPackageStartupMessages(library(forcats))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(caTools))
+suppressPackageStartupMessages(library(rattle))
+```
+
+
+
+```{r}
+attrition <- read.csv("C:/Users/aivii/OneDrive/Desktop/project 719/ibm-hr-analytics-attrition-dataset/Employee-Attrition.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+str(attrition)# chr and int only 
+dim(attrition) #  1470 observations with 35 variables
+head(attrition, n=3)
+```
+
+```{r}
+colnames(attrition)[1] <- "Age" # rename Age
+# Check for missing values 
+apply(X = attrition,MARGIN = 2,FUN = function(x) (length(which(x == '')))) # no missing values
+```
+
+```{r}
+head(attrition)
+```
+
+
+```{r}
+# Just for the organization, skewed data
+options(repr.plot.width=8, repr.plot.height=4)
+
+attritions_number <- attrition %>% group_by(Attrition) %>% summarise(Count=n()) %>%
+ggplot(aes(x=Attrition, y=Count)) + geom_bar(stat="identity", fill="#e9c6cc", color="white") + theme_bw() + coord_flip() + 
+geom_text(aes(x=Attrition, y=0.01, label= Count),
+            hjust=-0.8, vjust=-1, size=3, 
+            colour="black", fontface="bold",
+         angle=360) + labs(title="Employee Attrition (Amount)", x="Employee Attrition",y="Amount")
+
+attrition_percentage <- attrition %>% group_by(Attrition) %>% summarise(Count=n()) %>% 
+mutate(pct=round(prop.table(Count),2) * 100) %>% 
+ggplot(aes(x=Attrition, y=pct)) + geom_bar(stat="identity", fill = "#eae0c8", color="white") + 
+geom_text(aes(x=Attrition, y=0.01, label= sprintf("%.2f%%", pct)),
+            hjust=0.5, vjust=-3, size=4, 
+            colour="black", fontface="bold") + theme_bw() + labs(x="Employee Attrition", y="Percentage") + 
+labs(title="Employee Attrition (%)") 
+
+
+
+plot_grid(attritions_number, attrition_percentage, align="h", ncol=2)
+```
+84% of employees did not quit the organization while 16% did leave the organization.
+
+```{r}
+# Marital status
+ggplot(attrition, aes(x=factor(1), fill=MaritalStatus))+
+  geom_bar(width = 1)+
+  coord_polar("y")
+```
+
+```{r}
+# Overtime
+yes <- attrition[attrition$OverTime == "yes"]
+no <- attrition[attrition$OverTime == "no"]
+df <- c(yes, no)
+head(df)
+
+ggplot(attrition, aes(x=factor(1), fill=OverTime))+
+  geom_bar(width = 1)
+
+OVERTIME_percentage <- attrition %>% group_by(OverTime) %>% summarise(Count=n()) %>% 
+mutate(pct=round(prop.table(Count),2) * 100) %>% 
+ggplot(aes(x=OverTime, y=pct)) + geom_bar(stat="identity", fill = "#e7accf", color="white") + 
+geom_text(aes(x=OverTime, y=0.01, label= sprintf("%.2f%%", pct)),
+            hjust=0.5, vjust=-3, size=4, 
+            colour="black", fontface="bold") + theme_bw() + labs(x="Employee Overtime", y="Percentage") + 
+labs(title="Employee Overtime (%)") + theme(plot.title=element_text(hjust=0.5))
+
+OVERTIME_percentage  
+
+```
+
+```{r}
+# Job role
+ggplot(attrition, aes(x=JobRole)) + ggtitle("JobRole") + xlab("JobRole") +
+geom_bar(aes(y = 100*(..count..)/sum(..count..)), width = 0.5) + ylab("Percentage") + coord_flip() + theme_minimal()
+```
+
+
+What is the age distribution between males and females? Are there any significant discrepancies?
+```{r}
+# Age by Gender: The average age of females is 37.33 and for males is 36.65 and both distributions are similar.
+avg.age <- attrition %>% select(Gender, Age) %>% group_by(Gender) %>% summarize(avg=mean(Age))
+
+avg.age
+```
+
+
+What is the average job satisfaction by attrition status? Is any type of gender more disatisfied than the other?
+```{r}
+# Boxplot with attrition in the X-axis and Job Satisfaction in the y-Axis
+options(repr.plot.width=8, repr.plot.height=6) 
+
+
+box.attrition <- attrition %>% select(Attrition, JobSatisfaction, Gender) %>% 
+ggplot(aes(x=Attrition, y=JobSatisfaction, fill=Attrition)) + geom_boxplot(color="black") + theme_minimal() + facet_wrap(~Gender) + 
+scale_fill_manual(values=c("#e9c6cc", "#b9dcc4"))
+
+
+# Distribution of Job Satisfaction
+dist.satisfaction <- attrition  %>% select(JobSatisfaction) %>%
+ggplot(aes(x=JobSatisfaction)) + geom_density(color="white", fill="#eae0c8", trim=TRUE) + theme_tufte() + xlim(range(c(1,4)))
+
+
+
+plot_grid(box.attrition, dist.satisfaction, nrow=2)
+
+```
+
+```{r}
+# We want to see if young people have worked in more companies than the older generation
+# This might prove that the millenials tend to be more picky with regards to jobs than the older generation.
+options(repr.plot.width=8, repr.plot.height=7) 
+
+# First we must create categoricals variables based on Age
+attrition$Generation <- ifelse(attrition$Age<37,"Millenials",
+ifelse(attrition$Age>=38 & attrition$Age<54,"Generation X",
+ifelse(attrition$Age>=54 & attrition$Age<73,"Boomers","Silent"
+)))
+
+# Let's see the distribution by generation now
+generation.dist <- attrition %>% select(Generation, NumCompaniesWorked, Attrition) %>% 
+ggplot() + geom_boxplot(aes(x=reorder(Generation, NumCompaniesWorked, FUN=median), 
+                                      y=NumCompaniesWorked, fill=Generation)) + 
+theme_tufte() + facet_wrap(~Attrition) + 
+scale_fill_brewer(palette="RdBu") + coord_flip() + 
+labs(title="Knowing Past Generations",x="Generation", y="Number of Companies Previously Worked") + 
+theme(legend.position="bottom", legend.background = element_rect(fill="#FFF9F5",
+                                  size=0.5, linetype="solid", 
+                                  colour ="black")) + theme(strip.background = element_blank(), strip.text.x = element_blank(), 
+     plot.title=element_text(hjust=0.5, color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"))
+
+
+# 2.69
+overall.avg <- attrition %>% select(Generation, NumCompaniesWorked) %>% summarize(avg_ov=mean(NumCompaniesWorked))
+
+# Let's find the Average Numbers of Companies worked by Generation
+avg.comp <- attrition %>% select(Generation, NumCompaniesWorked, Attrition) %>% group_by(Generation, Attrition) %>%
+summarize(avg=mean(NumCompaniesWorked)) %>% 
+ggplot(aes(x=Generation, y=avg, color=Attrition)) + 
+  geom_point(size=3) + theme_tufte() +  # Draw points
+  geom_segment(aes(x=Generation, 
+                   xend=Generation, 
+                   y=min(avg), 
+                   yend=max(avg)), 
+               linetype="dashed", 
+               size=0.1,
+              color="white") +  
+  labs(title="", 
+       subtitle="Behavioral Difference between Generations",
+       y="Average Number of Companies worked for",
+      x="Generation") +  
+  coord_flip() + scale_color_manual(values=c("#58FA58", "#FA5858")) + 
+theme(legend.position="bottom", legend.background = element_rect(fill="#FFF9F5",
+                                  size=0.5, linetype="solid", 
+                                  colour ="black")) + theme(strip.background = element_blank(), strip.text.x = element_blank(), 
+     plot.title=element_text(hjust=0.5, color="white"),plot.subtitle=element_text(color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"))
+
+plot_grid(generation.dist, avg.comp, nrow=2)
+```
+
+Treepl Generation
+```{r}
+options(repr.plot.width=8, repr.plot.height=5)
+
+conti_df <- as.data.frame.matrix(table(attrition$Generation, attrition$Attrition))
+
+conti_df$groupSum <- rowSums(conti_df)
+conti_df$xmax <- cumsum(conti_df$groupSum)
+conti_df$xmin <- conti_df$xmax - conti_df$groupSum
+# The groupSum column needs to be removed; don't remove this line
+conti_df$groupSum <- NULL
+
+conti_df$Generation <- rownames(conti_df)
+
+melt_df <- melt(conti_df, id.vars = c("Generation", "xmin", "xmax"), variable.name = "Attrition")
+
+df_melt <- melt_df %>%
+  group_by(Generation) %>%
+  mutate(ymax = cumsum(value/sum(value)),
+         ymin = ymax - value/sum(value))
+
+index <- df_melt$xmax == max(df_melt$xmax)
+df_melt$yposn <- df_melt$ymin[index] + (df_melt$ymax[index] - df_melt$ymin[index])/2
+
+
+df_melt$xposn <- df_melt$xmin + (df_melt$xmax - df_melt$xmin)/2
+
+# geom_text for ages (i.e. the x axis)
+
+p1<- ggplot(df_melt, aes(ymin = ymin,
+                 ymax = ymax,
+                 xmin = xmin,
+                 xmax = xmax,
+                 fill = Attrition)) +
+  geom_rect(colour = "white") +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_fill_manual(values=c("#eae0c8", "#b9dcc4")) +
+theme(plot.title=element_text(hjust=0.5, color="white"), plot.background=element_rect(fill="black"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"),
+     legend.text=element_text(color="#595959",size=12),
+     plot.subtitle=element_text(color="white", size=10, face= 'italic', hjust=0.5),
+     legend.title=element_text(color="#595959"),
+     legend.position="bottom", legend.background = element_rect(fill="#FFF9F5",
+                                  size=0.5, linetype="solid", 
+                                  colour ="black"))
+
+p1 + 
+  geom_text(aes(x = xposn, label = Generation),
+            y = 0.15, angle = 90,
+            size = 3, hjust = -1.22,
+            show.legend = FALSE) + labs(title="Mosaic Plot", subtitle="Understanding both levels and frequencies of Attrition by Generation", 
+                                       x="Share of Employees", y="Frequency") + 
+theme(plot.title=element_text(hjust=0.5))
+```
+
+
+Attrition and income
+```{r}
+# Let's determine if income was a major factor when it came to leaving the company.
+# Let's start by taking the average monthly income of people who left the company and people who stayed in the company
+# Group by department 
+options(repr.plot.width=8, repr.plot.height=5) 
+
+
+avg.income <- attrition %>% select(Department, MonthlyIncome, Attrition) %>% group_by(Attrition, Department) %>%
+summarize(avg.inc=mean(MonthlyIncome)) %>%
+ggplot(aes(x=reorder(Department, avg.inc), y=avg.inc, fill=Attrition)) + geom_bar(stat="identity", position="dodge") + facet_wrap(~Attrition) + 
+theme_minimal() + theme(axis.text.x = element_text(angle = 90), plot.title=element_text(hjust=0.5)) + 
+scale_fill_manual(values=c("#88d8c0", "#e9c6cc")) + 
+labs(y="Average Income", x="Department", title="Average Income by Department \n and Attrition Status") + 
+geom_text(aes(x=Department, y=0.01, label= paste0("$ ", round(avg.inc,2))),
+            hjust=-0.5, vjust=0, size=3, 
+            colour="black", fontface="bold",
+         angle=90)
+
+
+avg.income
+```
+
+
+Income and factors
+```{r}
+options(repr.plot.width=8, repr.plot.height=7) 
+
+per.sal <- attrition %>% select(Attrition, PercentSalaryHike, MonthlyIncome) %>% 
+ggplot(aes(x=PercentSalaryHike, y=MonthlyIncome)) + geom_jitter(aes(col=Attrition), alpha=0.5) + 
+theme_economist() + theme(legend.position="none") + scale_color_manual(values=c("#58FA58", "#FA5858")) + 
+labs(title="Income and its Impact on Attrition") + theme(plot.title=element_text(hjust=0.5, color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"))
+
+perf.inc <- attrition %>% select(PerformanceRating, MonthlyIncome, Attrition) %>% group_by(factor(PerformanceRating), Attrition) %>% 
+ggplot(aes(x=factor(PerformanceRating), y=MonthlyIncome, fill=Attrition)) + geom_violin() + coord_flip() + facet_wrap(~Attrition) + 
+scale_fill_manual(values=c("#58FA58", "#FA5858")) + theme_economist() + 
+theme(legend.position="bottom", strip.background = element_blank(), strip.text.x = element_blank(), 
+     plot.title=element_text(hjust=0.5, color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"), 
+     legend.text=element_text(color="white")) + 
+labs(x="Performance Rating",y="Monthly Income") 
+
+
+plot_grid(per.sal, perf.inc, nrow=2)
+```
+
+Attrition and overtime
+```{r}
+options(repr.plot.width=10, repr.plot.height=5) 
+
+
+overtime_percent <- attrition %>% select(OverTime, Attrition) %>% filter(Attrition == "Yes") %>% group_by(Attrition, OverTime) %>%
+summarize(n=n()) %>% mutate(pct=round(prop.table(n),2) * 100) %>% 
+ggplot(aes(x="", y=pct, fill=OverTime)) + 
+geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0) +
+theme_tufte() + scale_fill_manual(values=c("#2EFE64", "#FE2E2E")) + 
+geom_label(aes(label = paste0(pct, "%")), position = position_stack(vjust = 0.5), colour = "white",  fontface = "italic")+
+theme(legend.position="bottom", strip.background = element_blank(), strip.text.x = element_blank(), 
+     plot.title=element_text(hjust=0.5, color="white"), plot.subtitle=element_text(color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"), 
+      legend.background = element_rect(fill="#FFF9F5",
+                                       size=0.5, linetype="solid", colour ="black")) + 
+labs(title="Level of Attrition by Overtime Status", subtitle="In Percent", x="", y="") 
+
+overtime_number <- attrition %>% select(OverTime, Attrition) %>% filter(Attrition == "Yes") %>% group_by(Attrition, OverTime) %>%
+summarize(n=n()) %>% mutate(pct=round(prop.table(n),2) * 100) %>% 
+ggplot(aes(x=OverTime, y=n, fill=OverTime)) + geom_bar(stat="identity") + scale_fill_manual(values=c("#BCF5A9", "#F5BCA9")) + 
+geom_label(aes(label=paste0(n)), fill="#FFF9F5", colour = "black", fontface = "italic") + 
+labs(title="Level of Attrition by Overtime Status", subtitle="In Numbers", x="Overtime Status", y="Number of Employees") + theme_minimal() + 
+theme(legend.position="bottom", strip.background = element_blank(), strip.text.x = element_blank(), 
+     plot.title=element_text(hjust=0.5, color="white"), plot.subtitle=element_text(color="white"), plot.background=element_rect(fill="#0D7680"),
+                                                        axis.text.x=element_text(colour="white"), axis.text.y=element_text(colour="white"),
+                                                        axis.title=element_text(colour="white"), 
+     legend.background = element_rect(fill="#FFF9F5",
+                                  size=0.5, linetype="solid", 
+                                  colour ="black")) 
+
+plot_grid(overtime_percent, overtime_number)
+
+```
+
+Attrition by Job Role
+```{r}
+options(repr.plot.width=10, repr.plot.height=6) 
+attr.job <- attrition %>% select(JobRole, Attrition) %>% group_by(JobRole, Attrition) %>% summarize(amount=n()) %>%
+mutate(pct=round(prop.table(amount),2) * 100) %>% arrange(pct)
+
+nofunc <- colorRampPalette(c("#A9F5A9", "#58FA58", "#01DF01"))
+yesfunc <- colorRampPalette(c("#F5A9A9", "#FE2E2E", "#B40404"))
+
+yes.attr <- attr.job %>% filter(Attrition == "Yes") %>% arrange(JobRole) 
+no.attr <- attr.job %>% filter(Attrition == "No") %>% arrange(JobRole)
+
+par(mar = pyramid.plot(no.attr$pct, yes.attr$pct, labels = unique(attr.job$JobRole),
+                       top.labels=c("No","","Yes"), main = "Attrition by Job Role", 
+                       gap=30, show.values = T, rxcol = yesfunc(9), lxcol = nofunc(9)))
+```
+
+Average Environment Satisfaction
+```{r}
+# Environment Satisfaction let's use the changes by JobRole
+options(repr.plot.width=8, repr.plot.height=5)
+
+env.attr <- attrition %>% select(EnvironmentSatisfaction, JobRole, Attrition) %>% group_by(JobRole, Attrition) %>%
+summarize(avg.env=mean(EnvironmentSatisfaction))
+
+ggplot(env.attr, aes(x=JobRole, y=avg.env)) + geom_line(aes(group=Attrition), color="#58ACFA", linetype="dashed") + 
+geom_point(aes(color=Attrition), size=3) +  theme_economist() + theme(plot.title=element_text(hjust=0.5), axis.text.x=element_text(angle=90),
+                                                                     plot.background=element_rect(fill="#FFF1E0")) + 
+labs(title="Working Environment", y="Average Environment Satisfaction", x="Job Position") + scale_color_manual(values=c("#58FA58", "#FA5858"))
+```
+
+Attrition and marital status
+```{r}
+ggplot(attrition,aes(MaritalStatus,..count..,fill=Attrition))+geom_bar(position=position_dodge())+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16))+labs(title="Attrition Count Vs Marital Status")
+```
+
+From the plot,it is understood that irrespective of the marital status,there are large people who stay with the company and do not leave.Therefore,marital status is a weak predictor of attrition.
+
+```{r}
+ggplot(attrition,aes(Age,MonthlyIncome,size=Age,col=factor(Attrition)))+geom_point(alpha=0.3)+theme_minimal()+facet_wrap(~MaritalStatus)+labs(x="Age",y="MonthlyIncome",title="Attrition Level Comparision ",subtitle="How attrition is observed with change in Age,Income and MaritalStatus",col="Attrition")+theme(legend.position="bottom",plot.title=element_text(size=16,hjust=0.5),plot.subtitle = element_text(size=10))+scale_color_brewer(palette="Set2")
+
+```
+
+
+Attrition and distance from home
+```{r}
+ggplot(attrition,aes(DistanceFromHome,fill=Attrition))+geom_density(alpha=0.5)+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16))+labs(x="Distance from Home",title="Attrition Vs Distance From Home")+scale_fill_canva(palette="Bold feature colors")
+```
+
+
+Attrition Vs Business Travel
+```{r}
+ggplot(attrition,aes(BusinessTravel,fill=Attrition))+geom_bar(stat="count",aes(y=..count..),position=position_dodge())+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16),axis.text.x = element_text(angle=90))+labs(x="Travel Frequency",y="Count",title="Attrition Vs Business Travel")
+```
+There are more people who travel rarely compared to those who travel frequently.In all the 3 cases,the attrition is not significantly evident.
+
+
+```{r}
+attrition %>% ggplot(aes(TotalWorkingYears,PercentSalaryHike,col=factor(Attrition),size=PercentSalaryHike))+geom_point(alpha=0.6)+theme(legend.position="bottom",plot.title = element_text(size=15,hjust=0.5))+labs(title="Percentage of Hike Vs Years of Experience",col="Attrition")
+```
+
+Who gets paid more?
+```{r,fig.width=9}
+temp=attrition %>% group_by(JobRole) %>% summarise(salary=median(MonthlyIncome)) %>% arrange(desc(salary))
+ggplot(temp,aes(factor(JobRole,levels=JobRole),salary))+geom_bar(stat="identity",fill="gold4")+coord_polar()+labs(x="Job Role",y="Median Salary",title="Who gets more??")+theme_few()+theme(axis.text.x=element_text(vjust=300),plot.title=element_text(hjust=0.5,size=16),axis.text.y=element_blank())+scale_x_discrete(labels=function(x)str_wrap(x,width=10))
+```
+
+Attrition and education
+
+```{r}
+temp= attrition %>% mutate(Education=factor(Education)) %>% mutate(Education=fct_recode(Education,'Below College'='1','College'='2','Bachelor'='3','Master'='4','Doctor'='5'))
+ggplot(temp,aes(Education,fill=Attrition))+geom_bar(stat="count",aes(y=..count..),position=position_dodge())+theme_few()+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16),axis.text.x = element_text(angle=90))+labs(x="Education Level",y="Count",title="Trend of Attrition with Education Level")+scale_fill_canva(palette="Golden afternoon")
+```
+
+```{r,fig.width=7}
+ggplot(temp,aes(Education,fill=Attrition))+geom_bar(stat="count",aes(y=..count..),position=position_dodge())+theme_few()+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16),axis.text.x = element_text(angle=90))+labs(x="Education Level",y="Count",title="Education levels and field of education")+scale_fill_canva(palette="Unique and striking")+facet_grid(~EducationField)
+```
+
+Number of company worked and attrition
+```{r}
+temp = attrition %>% group_by(Attrition,NumCompaniesWorked) %>% tally(sort=TRUE)
+ggplot(temp,aes(NumCompaniesWorked,n,fill=Attrition,label=n))+geom_bar(stat="identity",position=position_dodge())+theme_few()+theme(legend.position="bottom",plot.title=element_text(hjust=0.5,size=16))+labs(x="Number of Companies",y="Count",title="Number of Companies worked")+coord_cartesian(xlim=c(0,9))+scale_x_continuous(breaks=seq(0,9,1))
+```
+
+
+Switching company and getting paid more
+```{r}
+ggplot(attrition,aes(TotalWorkingYears,MonthlyIncome,size=NumCompaniesWorked,col=factor(Attrition)))+geom_point(alpha=0.5)+geom_jitter(width=0.04)+theme_few()+theme(plot.title=element_text(hjust=0.5,size=16),legend.position="bottom")+labs(x="Experience",y="MonthlySalary",title="Is switching over advantageous?",col="Attrition")+geom_smooth(method="lm")
+
+```
+
+From the plot,it is seen that people having less than ~8 years of experience  and have switched over to many companies have experienced a significant hike in the salary levels compared to those who stay in the company.
+
+Perfprmance raiting and attrition
+```{r}
+temp= attrition %>% mutate(PerformanceRating=factor(PerformanceRating)) %>% mutate(PerformanceRating=fct_recode(PerformanceRating,"Low"="1","Good"="2","Excellent"="3","Outstanding"="4"))
+ggplot(temp,aes(x=PerformanceRating,group=Attrition))+geom_bar(stat="count",aes(y=..prop..,fill=factor(..x..)))+labs(x="PerformanceRating",y="Percentage",title="Performance Rating Vs Attrition Rates")+facet_wrap(~Attrition)+theme_few()+theme(legend.position="none",plot.title=element_text(hjust=0.5,size=14))+geom_text(aes(label=scales::percent(..prop..),y=..prop..),stat="count",vjust=-0.5)
+```
+
+Overtime and attrition
+```{r}
+ggplot(attrition,aes(x=OverTime,group=Attrition))+geom_bar(stat="count",aes(y=..prop..,fill=factor(..x..)))+labs(x="Overtime",y="Percentage",title="Overtime Vs Attrition Rates")+facet_wrap(~Attrition)+theme_few()+theme(legend.position="none",plot.title=element_text(hjust=0.5,size=14))+geom_text(aes(label=scales::percent(..prop..),y=..prop..),stat="count",vjust=-0.5)+ scale_color_manual(values=c("#b7ded2", "#f6a6b2"))
+```
