@@ -13,13 +13,13 @@ The Applied Data Science program at Syracuse University's School of Information 
 
     - Overview Document detailing repository contents
  
-2. MayaMilevaResume.pdf
+2. Current Resume
 
-    - Current Resume
- 
-3. Maya_Mileva_PortfolioMilestone.pdf
+    - MayaMilevaResume.pdf
 
-    - Written Portfolio Milestone Report
+3. Written Portfolio Milestone Report
+
+    - Maya_Mileva_PortfolioMilestone.pdf
  
 4. Referenced Course Projects and Assignments
 
