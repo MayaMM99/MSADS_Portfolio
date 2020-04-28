@@ -37,9 +37,9 @@ The Applied Data Science program at Syracuse University's School of Information 
     
     - Public Link
     
-6. MayaMilevaSlideDeck.pdf
+6. Referenced slide deck from presentation
 
-   - Referenced slide deck from presentation
-   
+   - MayaMilevaSlideDeck.pdf
+
    - Public Link
     
