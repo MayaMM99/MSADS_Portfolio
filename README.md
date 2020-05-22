@@ -19,7 +19,7 @@ The Applied Data Science program at Syracuse University's School of Information 
 
 3. Written Portfolio Milestone Report
 
-    - [Maya_Mileva_PortfolioMilestone.pdf](https://github.com/MayaMM99/MSADS_Portfolio/blob/master/Portfolio%20Milestone%20Report/Maya_Mileva_PortfolioMilestone.pdf)
+    - [Maya_Mileva_PortfolioMilestone.pdf](https://github.com/MayaMM99/MSADS_Portfolio/blob/master/Written%20Portfolio%20Milestone%20Report/Maya_Mileva_PortfolioMilestone.pdf)
  
 4. Referenced Course Projects and Assignments
 
