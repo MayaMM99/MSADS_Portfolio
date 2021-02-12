@@ -32,7 +32,7 @@ The Applied Data Science program at Syracuse University's School of Information 
     
     - [MBC 638 Data Analysis and Decision Making](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/MBC638_Data%20Analysis%20and%20Decision%20Making)
     
-    - IST 736 Text Mining 
+    - [IST 736 Text Mining](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST736_Text%20Mining)
     
     - [IST 718 Big Data](https://github.com/MayaMM99/IST-718)
       - [Final Project - COVID-19](https://covid-dash-manso.herokuapp.com/)
