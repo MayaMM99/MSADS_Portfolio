@@ -27,6 +27,7 @@ The Applied Data Science program at Syracuse University's School of Information 
     
     - [IST 707 Data Analytics](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST707_Data%20Analytics)
        - [Final Project](https://mayamm99.github.io/MSADS_Portfolio/)
+       - [Covid-19] (https://covid-dash-manso.herokuapp.com/)
     
     - [IST 719 Information Visualization](https://github.com/MayaMM99/MSADS_Portfolio/tree/master/IST719_Information%20Visualization)
     
